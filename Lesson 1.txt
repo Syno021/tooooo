@@ -1,0 +1,228 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
+ */
+package javaapplication1;
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+/**
+ *
+ * @author Admn
+ */
+public class JavaApplication1 {
+
+    /**
+     * @param args the command line arguments
+     */
+    private static final String URL = "jdbc:mysql://localhost:3306/test?zeroDateTimeBehavior=CONVERT_TO_NULL";
+    private static final String USER = "root";
+    private static final String PASSWORD = "12345678";
+
+    // Method to get database connection
+    public static Connection getConnection() {
+        Connection conn = null;
+        try {
+            // Load MySQL JDBC Driver (optional for JDBC 4.0 and above)
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            // Create connection
+            conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            System.out.println("Connection successful!");
+        } catch (ClassNotFoundException e) {
+            System.out.println("MySQL JDBC Driver not found.");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Failed to connect to database.");
+            e.printStackTrace();
+        }
+        return conn;
+    }
+    
+    public static void main(String[] args) {
+        JavaApplication1.getConnection();
+    }
+    
+}
+
+
+The Form>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+public Inject() {
+        initComponents();
+        loadTableData();
+    }
+
+
+Dubmit button>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        // TODO add your handling code here:
+        String nm = name.getText();
+        String sn = surname.getText();
+        String em = email.getText();
+
+        java.sql.Connection conn = null;
+        java.sql.PreparedStatement pstmt = null;
+
+        try {
+            conn = JavaApplication1.getConnection();
+            if (conn != null) {
+                String sql = "INSERT INTO new (name, surname, email) VALUES (?, ?, ?)";
+                pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, nm);
+                pstmt.setString(2, sn);
+                pstmt.setString(3, em);
+
+                int rowsInserted = pstmt.executeUpdate();
+                if (rowsInserted > 0) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Data inserted successfully!");
+                    name.setText("");
+                    surname.setText("");
+                    email.setText("");
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Data insertion failed.");
+                }
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Database connection failed.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }            
+
+
+Display Data>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+private void loadTableData() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0); // Clear existing rows
+
+        String sql = "SELECT name, surname, email FROM new";
+
+        try (java.sql.Connection conn = JavaApplication1.getConnection();
+             java.sql.Statement stmt = conn.createStatement();
+             java.sql.ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                String nm = rs.getString("name");
+                String sn = rs.getString("surname");
+                String em = rs.getString("email");
+
+                model.addRow(new Object[]{nm, sn, em});
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            javax.swing.JOptionPane.showMessageDialog(this, "Failed to load data: " + e.getMessage());
+        }
+    }
+
+
+Update and Delete>>>>>>>>>>>>>>>>>>
+
+
+ private void DeleteActionPerformed(java.awt.event.ActionEvent evt) {                                       
+        // TODO add your handling code here:
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Please select a row to delete.");
+            return;
+        }
+
+        String nm = jTable1.getValueAt(selectedRow, 0).toString();
+        String sn = jTable1.getValueAt(selectedRow, 1).toString();
+        String em = jTable1.getValueAt(selectedRow, 2).toString();
+
+        int confirm = javax.swing.JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this record?", "Confirm Delete", javax.swing.JOptionPane.YES_NO_OPTION);
+        if (confirm != javax.swing.JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try (java.sql.Connection conn = JavaApplication1.getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement("DELETE FROM new WHERE name = ? AND surname = ? AND email = ?")) {
+
+            pstmt.setString(1, nm);
+            pstmt.setString(2, sn);
+            pstmt.setString(3, em);
+
+            int rowsDeleted = pstmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Record deleted successfully.");
+                loadTableData();
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Deletion failed.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }                                      
+
+    private void UpdateActionPerformed(java.awt.event.ActionEvent evt) {                                       
+        // TODO add your handling code here:
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Please select a row to update.");
+            return;
+        }
+
+        // Original values (used for WHERE clause)
+        String originalName = jTable1.getValueAt(selectedRow, 0).toString();
+        String originalSurname = jTable1.getValueAt(selectedRow, 1).toString();
+        String originalEmail = jTable1.getValueAt(selectedRow, 2).toString();
+
+        // New values (from text fields)
+        String newName = name.getText();
+        String newSurname = surname.getText();
+        String newEmail = email.getText();
+
+        try (java.sql.Connection conn = JavaApplication1.getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(
+                     "UPDATE new SET name = ?, surname = ?, email = ? WHERE name = ? AND surname = ? AND email = ?")) {
+
+            pstmt.setString(1, newName);
+            pstmt.setString(2, newSurname);
+            pstmt.setString(3, newEmail);
+            pstmt.setString(4, originalName);
+            pstmt.setString(5, originalSurname);
+            pstmt.setString(6, originalEmail);
+
+            int rowsUpdated = pstmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Record updated successfully.");
+                loadTableData();
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Update failed.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }                                      
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {                                     
+        // TODO add your handling code here:
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow != -1) {
+            name.setText(jTable1.getValueAt(selectedRow, 0).toString());
+            surname.setText(jTable1.getValueAt(selectedRow, 1).toString());
+            email.setText(jTable1.getValueAt(selectedRow, 2).toString());
+        }
+    }
+
+
+
